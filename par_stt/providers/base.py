@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import asdict, dataclass, field, is_dataclass
 from typing import Any, TypeAlias
 
@@ -14,6 +14,10 @@ AudioInput: TypeAlias = bytes | Iterator[bytes]
 # Result of a transcription: a complete transcript, or an iterator of chunks
 # emitted as the audio is processed (streaming providers).
 TranscribeResult: TypeAlias = "Transcript | Iterator[TranscriptChunk]"
+# Async streaming surface (see ``SttProvider.transcribe_async``). Streaming
+# providers override it natively; batch providers inherit a sync-wrapping
+# default. Kept as a type alias so consumers can annotate uniformly.
+TranscribeAsyncResult: TypeAlias = "AsyncIterator[TranscriptChunk]"
 
 
 @dataclass
@@ -130,6 +134,44 @@ class SttProvider(ABC):
             :class:`TranscriptChunk` for streaming providers.
         """
         pass
+
+    async def transcribe_async(
+        self,
+        audio: AudioInput,
+        *,
+        language: str | None = None,
+        model: str | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[TranscriptChunk]:
+        """Transcribe audio as an async stream of :class:`TranscriptChunk`.
+
+        Streaming providers (e.g. Deepgram Nova-3 over WebSocket) override
+        this with a native implementation. Batch providers do not need to
+        override it: the default wraps the synchronous :meth:`transcribe`
+        call, yielding the resulting chunks (or a single chunk synthesised
+        from a returned :class:`Transcript`) so callers always have a uniform
+        async-streaming surface.
+
+        Args:
+            audio: Input audio as bytes or a sync iterator of byte chunks.
+            language: Optional language hint (e.g. ``"en"``).
+            model: Optional model override (provider-specific).
+            **kwargs: Additional provider-specific parameters.
+
+        Yields:
+            :class:`TranscriptChunk` instances as they are produced. For
+            batch providers every chunk is finalized (``is_final=True``).
+        """
+        result = self.transcribe(audio, language=language, model=model, **kwargs)
+        if isinstance(result, Transcript):
+            if result.chunks:
+                for chunk in result.chunks:
+                    yield chunk
+            elif result.text:
+                yield TranscriptChunk(text=result.text, is_final=True)
+            return
+        for chunk in result:
+            yield chunk
 
     @property
     @abstractmethod
