@@ -86,9 +86,11 @@ class ElevenLabsProvider(SttProvider):
 
         Args:
             audio: Full audio bytes, or a sync iterator of byte chunks that will
-                be concatenated.  Pass raw 16 kHz mono int16 PCM with
-                ``file_format="pcm_s16le_16"``; container formats (wav/mp3/...)
-                are auto-detected.
+                be concatenated.  When ``file_format`` is not supplied it is
+                sniffed from the bytes: raw 16 kHz mono int16 PCM (as emitted by
+                :func:`~par_stt.audio_input.read_audio`) defaults to
+                ``pcm_s16le_16``, and container formats (wav/mp3/...) are
+                detected by magic bytes.  Pass ``file_format`` to override.
             language: Optional ISO-639 language hint (mapped to Scribe's
                 ``language_code``).
             model: Optional Scribe model override (defaults to ``scribe_v1``).
@@ -118,7 +120,7 @@ class ElevenLabsProvider(SttProvider):
                 language_code=options.language_code,
                 diarize=options.diarize or None,
                 tag_audio_events=options.tag_audio_events or None,
-                file_format=kwargs.get("file_format"),
+                file_format=kwargs.get("file_format") or _sniff_file_format(audio_bytes),
                 num_speakers=kwargs.get("num_speakers"),
             )
 
@@ -133,6 +135,33 @@ class ElevenLabsProvider(SttProvider):
             ) from exc
 
         return _response_to_transcript(response, language=language)
+
+
+def _sniff_file_format(audio_bytes: bytes) -> str:
+    """Return a Scribe ``file_format`` hint for *audio_bytes*.
+
+    When ``file_format`` is not supplied, Scribe needs to know how to decode the
+    bytes.  This sniffs the container magic bytes for the formats the provider
+    advertises (wav/mp3/m4a/ogg/flac/webm); anything unrecognised is assumed to
+    be the raw 16 kHz mono int16 PCM that
+    :func:`~par_stt.audio_input.read_audio` normalises to, reported as
+    ``pcm_s16le_16``.
+    """
+    if audio_bytes[:4] == b"RIFF" and audio_bytes[8:12] == b"WAVE":
+        return "wav"
+    if audio_bytes[:4] == b"fLaC":
+        return "flac"
+    if audio_bytes[:4] == b"OggS":
+        return "ogg"
+    if audio_bytes[4:8] == b"ftyp":  # ISO BMFF container (mp4/m4a)
+        return "m4a"
+    if audio_bytes[:4] == b"\x1a\x45\xdf\xa3":  # EBML (WebM/Matroska)
+        return "webm"
+    if audio_bytes[:3] == b"ID3" or (
+        len(audio_bytes) >= 2 and audio_bytes[0] == 0xFF and audio_bytes[1] & 0xE0 == 0xE0
+    ):
+        return "mp3"
+    return "pcm_s16le_16"
 
 
 def _coerce_scribe_options(kwargs: dict[str, Any], *, language: str | None) -> ScribeOptions:

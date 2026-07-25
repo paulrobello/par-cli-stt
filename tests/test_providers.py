@@ -157,6 +157,48 @@ def test_elevenlabs_coerce_scribe_options_merges_language_hint() -> None:
     assert explicit.language_code == "de"  # explicit options win over the language hint
 
 
+def test_elevenlabs_sniff_file_format_maps_containers_and_pcm() -> None:
+    from par_stt.providers.elevenlabs import _sniff_file_format
+
+    assert _sniff_file_format(b"") == "pcm_s16le_16"
+    assert _sniff_file_format(b"\x00\x01\x02" * 100) == "pcm_s16le_16"  # raw PCM, no container magic
+    assert _sniff_file_format(b"RIFF\x00\x00\x00\x00WAVEfmt ") == "wav"
+    assert _sniff_file_format(b"fLaC" + b"\x00" * 32) == "flac"
+    assert _sniff_file_format(b"OggS" + b"\x00" * 32) == "ogg"
+    assert _sniff_file_format(b"\x00\x00\x00\x20ftypM4A " + b"\x00" * 32) == "m4a"
+    assert _sniff_file_format(b"\x1a\x45\xdf\xa3" + b"\x00" * 32) == "webm"
+    assert _sniff_file_format(b"ID3\x03\x00" + b"\x00" * 32) == "mp3"
+    assert _sniff_file_format(b"\xff\xfb" + b"\x00" * 32) == "mp3"  # MPEG frame sync
+
+
+def test_elevenlabs_transcribe_defaults_file_format_to_pcm() -> None:
+    """Raw PCM (as read_audio emits) must reach Scribe as pcm_s16le_16.
+
+    Regression for the CLI path: ``read_audio`` strips container headers, so the
+    provider must report the canonical ``pcm_s16le_16`` format rather than
+    leaving Scribe to guess (which it rejects as "corrupted"). A real WAV
+    container is still sniffed.
+    """
+    from par_stt.providers.elevenlabs import ElevenLabsProvider
+
+    captured: dict[str, Any] = {}
+
+    class _FakeSpeechToText:
+        def convert(self, **kwargs: Any) -> Any:
+            captured.update(kwargs)
+            return SimpleNamespace(text="hi", language_code="eng", words=[], audio_duration_secs=1.0)
+
+    provider = ElevenLabsProvider(api_key="fake-key")
+    provider.client = SimpleNamespace(speech_to_text=_FakeSpeechToText())  # type: ignore[assignment]
+
+    provider.transcribe(b"\x00\x01\x02" * 100)
+    assert captured["file_format"] == "pcm_s16le_16"
+
+    captured.clear()
+    provider.transcribe(b"RIFF\x00\x00\x00\x00WAVEfmt " + b"\x00" * 64)
+    assert captured["file_format"] == "wav"
+
+
 # -- Audio input ---------------------------------------------------------------
 
 
