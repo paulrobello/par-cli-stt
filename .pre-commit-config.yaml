@@ -24,35 +24,35 @@ repos:
         args: [--autofix, --no-sort-keys]
         exclude: tests(/\w*)*/functional/|tests/input|tests(/.*)+/conftest.py|doc/data/messages|tests(/\w*)*data/|Pipfile.lock|output/.*
 
-- repo: local
-  hooks:
-    - id: pyright
-      name: pyright
-      entry: make
-      language: system
-      pass_filenames: false
-      args:
-        [typecheck]
-      exclude: tests(/\w*)*/functional/|tests/input|tests(/\w*)*data/|doc/|output/.*
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright
+        entry: make
+        language: system
+        pass_filenames: false
+        args:
+          [typecheck]
+        exclude: tests(/\w*)*/functional/|tests/input|tests(/\w*)*data/|doc/|output/.*
 
-- repo: local
-  hooks:
-    - id: format
-      name: format
-      entry: make
-      language: system
-      pass_filenames: false
-      args:
-        [format]
-      exclude: tests(/\w*)*/functional/|tests/input|tests(/\w*)*data/|doc/|output/.*
+  - repo: local
+    hooks:
+      - id: format
+        name: format
+        entry: make
+        language: system
+        pass_filenames: false
+        args:
+          [format]
+        exclude: tests(/\w*)*/functional/|tests/input|tests(/\w*)*data/|doc/|output/.*
 
-- repo: local
-  hooks:
-    - id: lint
-      name: lint
-      entry: make
-      language: system
-      pass_filenames: false
-      args:
-        [lint]
-      exclude: tests(/\w*)*/functional/|tests/input|tests(/\w*)*data/|doc/|output/.*
+  - repo: local
+    hooks:
+      - id: lint
+        name: lint
+        entry: make
+        language: system
+        pass_filenames: false
+        args:
+          [lint]
+        exclude: tests(/\w*)*/functional/|tests/input|tests(/\w*)*data/|doc/|output/.*

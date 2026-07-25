@@ -103,7 +103,11 @@ def write_transcript(
 
 
 def _render_json(transcript: Transcript) -> str:
-    payload = asdict(transcript) if is_dataclass(transcript) else {"text": str(transcript)}
+    payload = (
+        asdict(transcript)
+        if is_dataclass(transcript) and not isinstance(transcript, type)
+        else {"text": str(transcript)}
+    )
     return json.dumps(payload, ensure_ascii=False, indent=2)
 
 

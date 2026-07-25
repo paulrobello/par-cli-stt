@@ -536,7 +536,9 @@ def main(
         model = model or config_file.model
         language = language if language is not None else config_file.language
         output_format = output_format or config_file.output_format
-        output = output or (Path(config_file.output_dir) / "transcript.txt" if config_file.output_dir else None)
+        fmt_for_ext = output_format or "txt"
+        ext = "txt" if fmt_for_ext in ("text", "txt") else fmt_for_ext
+        output = output or (Path(config_file.output_dir) / f"transcript.{ext}" if config_file.output_dir else None)
         diarize = diarize if diarize is not None else config_file.diarize
         debug = debug or config_file.debug or False
         structured_logs = structured_logs or config_file.structured_logs or False

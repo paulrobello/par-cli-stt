@@ -634,6 +634,8 @@ source = { editable = "." }
 dependencies = [
     { name = "elevenlabs" },
     { name = "httpx" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "platformdirs" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
@@ -658,6 +660,7 @@ dev = [
 requires-dist = [
     { name = "elevenlabs", specifier = ">=2.44.0,<3.0" },
     { name = "httpx", specifier = ">=0.28.1,<1.0" },
+    { name = "numpy", specifier = ">=2.0,<3.0" },
     { name = "platformdirs", specifier = ">=4.9.6,<5.0" },
     { name = "python-dotenv", specifier = ">=1.2.2,<2.0" },
     { name = "pyyaml", specifier = ">=6.0.3,<7.0" },

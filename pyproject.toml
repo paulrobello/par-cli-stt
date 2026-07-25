@@ -45,6 +45,7 @@ keywords = [
 ]
 dependencies = [
     "httpx>=0.28.1,<1.0",
+    "numpy>=2.0,<3.0",
     "python-dotenv>=1.2.2,<2.0",
     "typer>=0.24.2,<1.0",
     "rich>=15.0.0,<20.0",
