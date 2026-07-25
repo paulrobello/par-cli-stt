@@ -35,16 +35,20 @@ class TranscriptFormat(StrEnum):
     def from_value(cls, value: str) -> TranscriptFormat:
         """Resolve a case-insensitive format name to a member.
 
+        ``"txt"`` is accepted as a widely-used alias for :attr:`TEXT` (``"text"``).
+
         Raises:
             SttError: If *value* is not a recognised format.
         """
         normalised = value.strip().lower().lstrip(".")
+        if normalised == "txt":
+            return cls.TEXT
         try:
             return cls(normalised)
         except ValueError as exc:
             valid = ", ".join(member.value for member in cls)
             handle_error(
-                f"Unknown transcript format '{value}'. Valid: {valid}",
+                f"Unknown transcript format '{value}'. Valid: txt, {valid}",
                 ErrorType.INVALID_INPUT,
                 exception=exc,
             )

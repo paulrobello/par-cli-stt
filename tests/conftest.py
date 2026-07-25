@@ -49,3 +49,17 @@ def temp_audio_file(tmp_path: Path) -> Path:
 def fake_pcm_bytes() -> bytes:
     """Return raw 16 kHz mono int16 PCM bytes (1 s of silence)."""
     return (np.zeros(16_000, dtype=np.int16)).tobytes()
+
+
+@pytest.fixture
+def fake_transcript() -> object:
+    """Return a populated Transcript for CLI/pipeline tests (typed loosely to avoid import cycles)."""
+    from par_stt.providers.base import Transcript, TranscriptChunk
+
+    chunk = TranscriptChunk(text="hello world", start_ms=0.0, end_ms=1500.0, is_final=True)
+    return Transcript(
+        text="hello world",
+        chunks=[chunk],
+        language="en",
+        detected_language="eng",
+    )

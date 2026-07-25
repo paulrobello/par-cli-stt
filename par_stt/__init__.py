@@ -31,7 +31,9 @@ from par_stt.audio_input import (
 )
 from par_stt.costs import COST_PER_MILLION_MINUTES, CostEstimate, estimate_transcription_cost
 from par_stt.defaults import DEFAULT_LANGUAGE, DEFAULT_MODELS, DEFAULT_PROVIDER
+from par_stt.diagnostics import DiagnosticCheck, collect_diagnostics
 from par_stt.errors import ErrorType, SttError
+from par_stt.pipeline import TranscriptionPipeline
 from par_stt.provider_factory import create_provider
 from par_stt.providers import PROVIDERS
 from par_stt.providers.base import (
@@ -82,6 +84,8 @@ __all__ = [
     "RetryPolicy",
     "CostEstimate",
     "COST_PER_MILLION_MINUTES",
+    "DiagnosticCheck",
+    "TranscriptionPipeline",
     "TranscriptFormat",
     "DEFAULT_PROVIDER",
     "DEFAULT_MODELS",
@@ -129,13 +133,3 @@ def get_provider(name: str) -> type[SttProvider]:
 def list_providers() -> list[str]:
     """Return a sorted list of available provider names."""
     return sorted(PROVIDERS.keys())
-
-
-def collect_diagnostics() -> list[str]:
-    """Return a list of human-readable provider-registry diagnostic messages.
-
-    Currently surfaces messages from the last entry-point plugin discovery
-    pass. Exposed as a stable hook for the CLI and consumers; richer
-    diagnostics land in a later chunk.
-    """
-    return get_plugin_diagnostics()
