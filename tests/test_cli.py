@@ -154,6 +154,28 @@ def test_transcribe_happy_path_prints_text(
     assert fake.transcribe_calls[0]["language"] is None
 
 
+def test_default_provider_is_elevenlabs_when_unspecified(
+    monkeypatch: pytest.MonkeyPatch,
+    temp_audio_file: Path,
+) -> None:
+    """With no --provider and no config provider, the CLI resolves to elevenlabs."""
+    resolved: dict[str, str] = {}
+    fake = FakeProvider()
+
+    def _capture_create(provider: str, *args: Any, **kwargs: Any) -> FakeProvider:
+        resolved["provider"] = provider
+        return fake
+
+    monkeypatch.setattr(stt_cli, "create_provider", _capture_create)
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "fake-elevenlabs-key")
+
+    runner = CliRunner()
+    result = runner.invoke(stt_cli.app, [str(temp_audio_file)])
+
+    assert result.exit_code == 0, result.output
+    assert resolved["provider"] == "elevenlabs"
+
+
 def test_transcribe_writes_output_file(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

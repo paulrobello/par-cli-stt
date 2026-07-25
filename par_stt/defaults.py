@@ -6,8 +6,8 @@ to avoid duplication and ensure consistency.
 
 import os
 
-# Default provider (Deepgram Nova-3 — streaming-first).
-DEFAULT_PROVIDER = "deepgram"
+# Default provider (ElevenLabs Scribe — batch, high accuracy).
+DEFAULT_PROVIDER = "elevenlabs"
 
 # Default models by provider.
 DEFAULT_MODELS: dict[str, str] = {
