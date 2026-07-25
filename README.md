@@ -13,6 +13,8 @@ A streaming speech-to-text library and command-line tool supporting multiple STT
 **Use as a CLI** — `par-stt recording.wav`
 **Use as a library** — `from par_stt import create_provider`
 
+**Companion project:** [par-cli-tts](https://github.com/paulrobello/par-cli-tts) — the text-to-speech counterpart (ElevenLabs, OpenAI, Kokoro, Deepgram, Gemini).
+
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/probello3)
 
 ## Table of Contents
